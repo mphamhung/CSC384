@@ -78,7 +78,7 @@ def heur_alternate(state):
   global prev_states
   total_distance = 0  
   
-  mem = hash(state.boxes + state.width + state.height) 
+  mem = hash(state.boxes)  + hash(state.width + state.height) 
   if mem in cache.keys():
     cache[mem] += 1
   else:
