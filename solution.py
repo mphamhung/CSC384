@@ -55,18 +55,6 @@ def heur_manhattan_distance(state):
   return total_distance
 
 
-obstacles = []
-deadsquares = []
-prev_states = []
-    
-def in_corner(box, obstacles):
-  
-  if box[0]-1  in obstacles or box[0]+1 in obstacles:
-    if box[1]-1  in obstacles or box[1] +1 in obstacles:
-      return True
-      
-  else:
-    return False
 
   
 def next_to_wall(box, obstacles):
@@ -77,6 +65,8 @@ def next_to_wall(box, obstacles):
   else: 
     return False
     
+
+    
 def heur_alternate(state):
   '''a better sokoban heuristic'''
   '''INPUT: a sokoban state'''
@@ -85,12 +75,28 @@ def heur_alternate(state):
   #Write a heuristic function that improves upon heur_manhattan_distance to estimate distance between the current state and the goal.
   #Your function should return a numeric value for the estimate of the distance to the goal.  
   global walls
+  global prev_states
   total_distance = 0  
   if not state.parent:
     walls = []
-    
+    prev_states = []
+  
+  # if state.hashable_state in prev_states:
+  #   return 100000
+  # else:
+  #   prev_states.append(state.hashable_state())
+  #   
   def calc_manhattan_dist(box, storage):
     return (abs(box[0]-storage[0])+abs(box[1]-storage[1]))
+
+
+  def in_corner(box, obstacles):
+    
+    if box[0]-1  in obstacles or box[0]+1 in obstacles:
+      if box[1]-1  in obstacles or box[1] +1 in obstacles:
+        return True
+    else:
+      return False
   
   if not walls:
     '''adding walls'''
@@ -102,14 +108,15 @@ def heur_alternate(state):
         walls.append((-1, j))
         walls.append((state.width, j))
     '''adding state obstacles'''
-    walls += (list(state.obstacles))
     
   tmp = []
   for box in state.boxes:
-    if in_corner(box, walls+tmp):
-      return 10000
-    elif next_to_wall(box, walls):
-      tmp.append(box)
+    if in_corner(box, walls+tmp+list(state.obstacles)):
+        return 10000
+          
+    if next_to_wall(box, list(state.obstacles)):
+          tmp.append(box)
+
         
   # Distance from boxes to their storage
   for box, restrict in state.boxes.items():
@@ -124,8 +131,20 @@ def heur_alternate(state):
           distance = calc_manhattan_dist(box, storage)
     
     total_distance += distance
+  # of displaced boxes
+  count = 0
+  for box in state.boxes:
+    if box not in state.storage:
+      count += 1
+    total_distance += count
     
-  #Distance
+  #Distance of robot to nearest box
+  for box in state.boxes:
+    distance = float('inf')
+    if calc_manhattan_dist(state.robot, box) < distance:
+      distance = calc_manhattan_dist(state.robot, box)
+      
+  total_distance += distance
         
   return total_distance
   # global walls
