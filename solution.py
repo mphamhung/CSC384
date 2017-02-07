@@ -126,7 +126,7 @@ def heur_alternate(state):
   for storage in state.storage:
     if not next_to_wall(storage, walls):
       for box in state.boxes:
-        if next_to_wall(box, walls:
+        if next_to_wall(box, walls):
           return float('inf')
           
   tmp = []
