@@ -80,11 +80,11 @@ def heur_alternate(state):
     walls = []
     prev_states = []
   
-  if state.hashable_state in prev_states:
-    return 100000
-  else:
-    prev_states.append(state.hashable_state())
-    
+  # if state.hashable_state in prev_states:
+  #   return 100000
+  # else:
+  #   prev_states.append(state.hashable_state())
+  #   
   
   def calc_dist(robot, box, storage):
     return (abs(box[0]-storage[0])+abs(box[1]-storage[1]))+ (abs(box[0]-robot[0])+abs(box[1]-robot[1]))
@@ -109,21 +109,21 @@ def heur_alternate(state):
         walls.append((state.width, j))
     '''adding state obstacles'''
   
-  for box, restrict in state.boxes.items():
-    if (state.restrictions):
-      for storage in state.restrictions[restrict]:
-        if box != storage:
-          if in_corner(box, walls + list(state.obstacles)):
-            return float('inf')
-            
-  # tmp = []
-  # for box in state.boxes:
-  #   if box not in state.storage:
-  #     if in_corner(box, walls+tmp+list(state.obstacles)):
-  #         return 10000
+  # for box, restrict in state.boxes.items():
+  #   if (state.restrictions):
+  #     for storage in state.restrictions[restrict]:
+  #       if box != storage:
+  #         if in_corner(box, walls + list(state.obstacles)):
+  #           return float('inf')
   #           
-  #     if next_to_wall(box, walls+list(state.obstacles)):
-  #           tmp.append(box)
+  tmp = []
+  for box in state.boxes:
+    if box not in state.storage:
+      if in_corner(box, walls+tmp+list(state.obstacles)):
+          return 10000
+            
+      if next_to_wall(box, walls+list(state.obstacles)):
+            tmp.append(box)
 
             
   # Distance from robot to boxes to their storage
