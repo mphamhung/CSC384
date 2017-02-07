@@ -91,7 +91,6 @@ def heur_alternate(state):
 
 
   def in_corner(box, obstacles):
-    
     if box[0]-1  in obstacles or box[0]+1 in obstacles:
       if box[1]-1  in obstacles or box[1] +1 in obstacles:
         return True
@@ -111,11 +110,12 @@ def heur_alternate(state):
     
   tmp = []
   for box in state.boxes:
-    if in_corner(box, walls+tmp+list(state.obstacles)):
-        return 10000
-          
-    if next_to_wall(box, list(state.obstacles)):
-          tmp.append(box)
+    if box not in state.storage:
+      if in_corner(box, walls+tmp+list(state.obstacles)):
+          return 10000
+            
+      if next_to_wall(box, list(state.obstacles)):
+            tmp.append(box)
 
         
   # Distance from boxes to their storage
@@ -131,55 +131,23 @@ def heur_alternate(state):
           distance = calc_manhattan_dist(box, storage)
     
     total_distance += distance
-  # of displaced boxes
-  count = 0
-  for box in state.boxes:
-    if box not in state.storage:
-      count += 1
-    total_distance += count
     
-  #Distance of robot to nearest box
-  for box in state.boxes:
-    distance = float('inf')
-    if calc_manhattan_dist(state.robot, box) < distance:
-      distance = calc_manhattan_dist(state.robot, box)
-      
-  total_distance += distance
-        
-  return total_distance
-  # global walls
-
- ##   total_distance = 0
-  # 
-  
-
- ##     
-  # def calc_manhattan_dist(box, storage):
-  #   return (abs(box[0]-storage[0])+abs(box[1]-storage[1]))
-
-  
-  # tmp = []
-  # for box in set(state.boxes):
-  #   if in_corner(box, walls):
-  #     return float('inf')
+  # # of displaced boxes
+  # count = 0
+  # for box in state.boxes:
+  #   if box not in state.storage:
+  #     count += 1
+  #   total_distance += count
   #   
-  #   
-  # for box, restrict in state.boxes.items():
+  # #Distance of robot to nearest box
+  # for box in state.boxes:
   #   distance = float('inf')
-  #   if (state.restrictions):
-  #     for storage in state.restrictions[restrict]:
-  #       if calc_manhattan_dist(box, storage) < distance:
-  #         distance = calc_manhattan_dist(box, storage)
-  #   else:
-  #     for storage in state.storage:
-  #       if calc_manhattan_dist(box, storage) < distance:
-  #         distance = calc_manhattan_dist(box, storage)
-  #         
-  #   total_distance += distance
+  #   if calc_manhattan_dist(state.robot, box) < distance:
+  #     distance = calc_manhattan_dist(state.robot, box)
+  #     
+  # total_distance += distance
   #       
-  # return total_distance
-  
-#   
+  return total_distance
 
 
 def heur_alternate_1(state):
