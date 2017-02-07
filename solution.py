@@ -124,9 +124,9 @@ def heur_alternate(state):
         walls.append((state.width, j))
         
   for storage in state.storage:
-    if not next_to_wall(storage, walls+list(state.obstacles)):
+    if not next_to_wall(storage, walls):
       for box in state.boxes:
-        if next_to_wall(box, walls+list(state.obstacles)):
+        if next_to_wall(box, walls:
           return float('inf')
           
   tmp = []
