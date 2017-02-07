@@ -146,11 +146,11 @@ def heur_alternate(state):
     if (state.restrictions):
       for storage in state.restrictions[restrict]:
         if obstruction_in_between(box, storage) < distance:
-          distance = obstruction_in_between(box, storage)
+          distance = obstruction_in_between(box, storage) + obstruction_in_between(box, state.robot)
     else:
       for storage in state.storage:
         if obstruction_in_between(box, storage) < distance:
-          distance = obstruction_in_between(box, storage)
+          distance = obstruction_in_between(box, storage) + obstruction_in_between(box, state.robot)
 
           
     total_distance += distance
