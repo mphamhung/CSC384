@@ -60,30 +60,22 @@ deadsquares = []
 prev_states = []
     
 def in_corner(box, obstacles):
-  if (box[0]+1,box[1]) in obstacles:
-    if (box[0],box[1]+1) in obstacles:
+  
+  if box[0]-1  in obstacles or box[0]+1 in obstacles:
+    if box[1]-1  in obstacles or box[1] +1 in obstacles:
       return True
-    elif (box[0], box[1]-1) in obstacles:
-      return True
-  elif (box[0]-1,box[1]) in obstacles:
-    if (box[0],box[1]+1) in obstacles:
-      return True
-    elif (box[0],box[1]-1) in obstacles:
-      return True
+      
   else:
     return False
-    
+
   
-def next_to_wall(box):
-  if box not in walls:
-    if (box[0]+1,box[1]) in obstacles:
-      return True
-    elif (box[0], box[1]-1) in obstacles:
-        return True
-    elif (box[0]-1,box[1]) in obstacles:
-        return True
-    elif (box[0],box[1]+1) in obstacles:
-        return True
+def next_to_wall(box, obstacles):
+  if box[0]-1  in obstacles or box[0]+1 in obstacles:
+    return True
+  if box[1]-1  in obstacles or box[1] +1 in obstacles:
+    return True
+  else: 
+    return False
     
 def heur_alternate(state):
   '''a better sokoban heuristic'''
@@ -112,11 +104,14 @@ def heur_alternate(state):
     '''adding state obstacles'''
     walls += (list(state.obstacles))
     
+  tmp = []
   for box in state.boxes:
-    if in_corner(box, walls):
-      return 0
-          
-          
+    if in_corner(box, walls+tmp):
+      return 10000
+    elif next_to_wall(box, walls):
+      tmp.append(box)
+        
+  # Distance from boxes to their storage
   for box, restrict in state.boxes.items():
     distance = float('inf')
     if (state.restrictions):
@@ -129,6 +124,8 @@ def heur_alternate(state):
           distance = calc_manhattan_dist(box, storage)
     
     total_distance += distance
+    
+  #Distance
         
   return total_distance
   # global walls
