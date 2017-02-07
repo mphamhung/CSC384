@@ -75,10 +75,9 @@ def heur_alternate(state):
   #Your function should return a numeric value for the estimate of the distance to the goal.
   global cache  
   global walls
-  global prev_states
   total_distance = 0  
   
-  mem = hash(state.boxes)  + hash(state.width + state.height) 
+  mem = hash(frozenset(state.boxes))  + hash(state.width + state.height) 
   if mem in cache.keys():
     cache[mem] += 1
   else:
@@ -88,35 +87,33 @@ def heur_alternate(state):
     
   if not state.parent:
     walls = []
-    prev_states = []
-  
   
   def calc_dist(box, storage):
     return (abs(box[0]-storage[0])+abs(box[1]-storage[1]))
 
-  def in_corner(box, obstacles):
-    if box[0]-1  in obstacles or box[0]+1 in obstacles:
-      if box[1]-1  in obstacles or box[1] +1 in obstacles:
-        return True
-    else:
-      return False
-      
-  def next_to_wall(box, obstacles):
-    if box[0]-1  in obstacles or box[0]+1 in obstacles:
-      return True
-    if box[1]-1  in obstacles or box[1] +1 in obstacles:
-      return True
-    else: 
-      return False
-    
-  def obstruction_in_between(box, storage):
-    distance = calc_dist(box, storage)
-    for obstacle in state.obstacles:
-      if calc_dist(box, obstacle)+calc_dist(storage, obstacle) == distance:
-        distance += 4
-    
-    return distance
-    
+  # def in_corner(box, obstacles):
+  #   if box[0]-1  in obstacles or box[0]+1 in obstacles:
+  #     if box[1]-1  in obstacles or box[1] +1 in obstacles:
+  #       return True
+  #   else:
+  #     return False
+  #     
+  # def next_to_wall(box, obstacles):
+  #   if box[0]-1  in obstacles or box[0]+1 in obstacles:
+  #     return True
+  #   if box[1]-1  in obstacles or box[1] +1 in obstacles:
+  #     return True
+  #   else: 
+  #     return False
+  #   
+  # def obstruction_in_between(box, storage):
+  #   distance = calc_dist(box, storage)
+  #   for obstacle in state.obstacles:
+  #     if calc_dist(box, obstacle)+calc_dist(storage, obstacle) == distance:
+  #       distance += 4
+  #   
+  #   return distance
+  #   
 
   #Initilizing walls
   if not walls:
@@ -129,22 +126,22 @@ def heur_alternate(state):
         walls.append((state.width, j))
         
         
-  # #wall checking      
-  # for storage in state.storage:
-  #   if not next_to_wall(storage, walls):
-  #     for box in state.boxes:
-  #       if next_to_wall(box, walls):
-  #         return float('inf')
-          
-  #corner checking
-  tmp = []
-  for box in state.boxes:
-    if box not in state.storage:
-      if in_corner(box, walls+tmp+list(state.obstacles)):
+  #wall checking      
+  for storage in state.storage:
+    if not next_to_wall(storage, walls):
+      for box in state.boxes:
+        if next_to_wall(box, walls):
           return float('inf')
-            
-      if next_to_wall(box, walls+list(state.obstacles)):
-          tmp.append(box)
+          
+  # #corner checking
+  # tmp = []
+  # for box in state.boxes:
+  #   if box not in state.storage:
+  #     if in_corner(box, walls+tmp+list(state.obstacles)):
+  #         return float('inf')
+  #           
+  #     if next_to_wall(box, walls+list(state.obstacles)):
+  #         tmp.append(box)
 
             
   # Distance from robot to boxes to their storage
