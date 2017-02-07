@@ -104,13 +104,13 @@ def heur_alternate(state):
     else: 
       return False
     
-  def obstruction_in_between(box, storage):
-    distance = calc_dist(box, storage)
-    for obstacle in state.obstacles:
-      if calc_dist(box, obstacle)+calc_dist(storage, obstacle) == distance:
-        distance += 4
-    
-    return distance
+  # def obstruction_in_between(box, storage):
+  #   distance = calc_dist(box, storage)
+  #   for obstacle in state.obstacles:
+  #     if calc_dist(box, obstacle)+calc_dist(storage, obstacle) == distance:
+  #       distance += 4
+  #   
+  #   return distance
     
 
   #Initilizing walls
@@ -123,12 +123,15 @@ def heur_alternate(state):
         walls.append((-1, j))
         walls.append((state.width, j))
         
-  for storage in state.storage:
-    if not next_to_wall(storage, walls):
-      for box in state.boxes:
-        if next_to_wall(box, walls):
-          return float('inf')
+        
+  # #wall checking      
+  # for storage in state.storage:
+  #   if not next_to_wall(storage, walls):
+  #     for box in state.boxes:
+  #       if next_to_wall(box, walls):
+  #         return float('inf')
           
+  #corner checking
   tmp = []
   for box in state.boxes:
     if box not in state.storage:
@@ -145,12 +148,12 @@ def heur_alternate(state):
     distance = float('inf')
     if (state.restrictions):
       for storage in state.restrictions[restrict]:
-        if obstruction_in_between(box, storage) < distance:
-          distance = obstruction_in_between(box, storage) + obstruction_in_between(box, state.robot)
+        if calc_dist(box, storage) + calc_dist(box, state.robot) < distance:
+          distance = calc_dist(box, storage) + calc_dist(box, state.robot)
     else:
       for storage in state.storage:
-        if obstruction_in_between(box, storage) < distance:
-          distance = obstruction_in_between(box, storage) + obstruction_in_between(box, state.robot)
+        if calc_dist(box, storage) + calc_dist(box, state.robot) < distance:
+          distance = calc_dist(box, storage) + calc_dist(box, state.robot)
 
           
     total_distance += distance
