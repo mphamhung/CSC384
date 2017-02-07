@@ -97,15 +97,6 @@ def heur_alternate(state):
     else:
       return False
 
-  def is_dead(state):
-    for box, restrict in state.boxes.items():
-      if (state.restrictions):
-        for storage in state.restrictions[restrict]:
-          if box != storage:
-            if in_corner(box):
-              return true
-              
-          
   
   if not walls:
     '''adding walls'''
@@ -118,9 +109,13 @@ def heur_alternate(state):
         walls.append((state.width, j))
     '''adding state obstacles'''
   
-  if is_dead(state):
-    return float('inf')
-  
+  for box, restrict in state.boxes.items():
+    if (state.restrictions):
+      for storage in state.restrictions[restrict]:
+        if box != storage:
+          if in_corner(box, walls + list(state.obstacles)):
+            return float('inf')
+            
   # tmp = []
   # for box in state.boxes:
   #   if box not in state.storage:
