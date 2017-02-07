@@ -55,8 +55,6 @@ def heur_manhattan_distance(state):
   return total_distance
 
 
-
-  
 def next_to_wall(box, obstacles):
   if box[0]-1  in obstacles or box[0]+1 in obstacles:
     return True
@@ -66,7 +64,6 @@ def next_to_wall(box, obstacles):
     return False
     
 
-    
 def heur_alternate(state):
   '''a better sokoban heuristic'''
   '''INPUT: a sokoban state'''
@@ -86,8 +83,9 @@ def heur_alternate(state):
   # else:
   #   prev_states.append(state.hashable_state())
   #   
-  def calc_manhattan_dist(box, storage):
-    return (abs(box[0]-storage[0])+abs(box[1]-storage[1]))
+  def calc_dist(robot, box, storage):
+    
+    return (abs(box[0]-storage[0])+abs(box[1]-storage[1]))+ (abs(box[0]-robot[0])+abs(box[1]-robot[1]))
 
 
   def in_corner(box, obstacles):
@@ -108,27 +106,30 @@ def heur_alternate(state):
         walls.append((state.width, j))
     '''adding state obstacles'''
     
-  tmp = []
-  for box in state.boxes:
-    if box not in state.storage:
-      if in_corner(box, walls+tmp+list(state.obstacles)):
-          return 10000
-            
-      if next_to_wall(box, walls+list(state.obstacles)):
-            tmp.append(box)
+  # tmp = []
+  # for box in state.boxes:
+  #   if box not in state.storage:
+  #     if in_corner(box, walls+tmp+list(state.obstacles)):
+  #         return 10000
+  #           
+  #     if next_to_wall(box, walls+list(state.obstacles)):
+  #           tmp.append(box)
 
         
-  # Distance from boxes to their storage
+  # Distance from robot to boxes to their storage
+  tmp =[]
   for box, restrict in state.boxes.items():
     distance = float('inf')
     if (state.restrictions):
       for storage in state.restrictions[restrict]:
-        if calc_manhattan_dist(box, storage) < distance:
-          distance = calc_manhattan_dist(box, storage)
+        if calc_dist(state.robot,box, storage) < distance:
+          distance = calc_dist(state.robot,box, storage)
     else:
       for storage in state.storage:
-        if calc_manhattan_dist(box, storage) < distance:
-          distance = calc_manhattan_dist(box, storage)
+        if calc_dist(state.robot,box, storage) < distance:
+          distance = calc_dist(state.robot, box, storage)
+
+          
     total_distance += distance
     
     
