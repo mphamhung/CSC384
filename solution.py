@@ -64,27 +64,32 @@ def next_to_wall(box, obstacles):
     return False
     
 
+
+cache = {}
 def heur_alternate(state):
   '''a better sokoban heuristic'''
   '''INPUT: a sokoban state'''
   '''OUTPUT: a numeric value that serves as an estimate of the distance of the state to the goal.'''        
   #heur_manhattan_distance has flaws.   
   #Write a heuristic function that improves upon heur_manhattan_distance to estimate distance between the current state and the goal.
-  #Your function should return a numeric value for the estimate of the distance to the goal.  
+  #Your function should return a numeric value for the estimate of the distance to the goal.
+  global cache  
   global walls
   global prev_states
   total_distance = 0  
   
-  
+  mem = hash(state.boxes + state.width + state.height) 
+  if mem in cache.keys():
+    cache[mem] += 1
+  else:
+    cache[mem] = 1
+    
+  total_distance -= cache[mem]
+    
   if not state.parent:
     walls = []
     prev_states = []
   
-  # if state.hashable_state in prev_states:
-  #   return 100000
-  # else:
-  #   prev_states.append(state.hashable_state())
-  #   
   
   def calc_dist(box, storage):
     return (abs(box[0]-storage[0])+abs(box[1]-storage[1]))
@@ -104,13 +109,13 @@ def heur_alternate(state):
     else: 
       return False
     
-  # def obstruction_in_between(box, storage):
-  #   distance = calc_dist(box, storage)
-  #   for obstacle in state.obstacles:
-  #     if calc_dist(box, obstacle)+calc_dist(storage, obstacle) == distance:
-  #       distance += 4
-  #   
-  #   return distance
+  def obstruction_in_between(box, storage):
+    distance = calc_dist(box, storage)
+    for obstacle in state.obstacles:
+      if calc_dist(box, obstacle)+calc_dist(storage, obstacle) == distance:
+        distance += 4
+    
+    return distance
     
 
   #Initilizing walls
