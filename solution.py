@@ -89,7 +89,6 @@ def heur_alternate(state):
   def calc_dist(box, storage):
     return (abs(box[0]-storage[0])+abs(box[1]-storage[1]))
 
-
   def in_corner(box, obstacles):
     if box[0]-1  in obstacles or box[0]+1 in obstacles:
       if box[1]-1  in obstacles or box[1] +1 in obstacles:
@@ -101,7 +100,7 @@ def heur_alternate(state):
     distance = calc_dist(box, storage)
     for obstacle in state.obstacles:
       if calc_dist(box, obstacle)+calc_dist(storage, obstacle) == distance:
-        distance += 3
+        distance += 4
     
     return distance
     
@@ -116,20 +115,12 @@ def heur_alternate(state):
     for j in range(state.height):
         walls.append((-1, j))
         walls.append((state.width, j))
-    '''adding state obstacles'''
-  
-  # for box, restrict in state.boxes.items():
-  #   if (state.restrictions):
-  #     for storage in state.restrictions[restrict]:
-  #       if box != storage:
-  #         if in_corner(box, walls + list(state.obstacles)):
-  #           return float('inf')
-  #           
+        
   tmp = []
   for box in state.boxes:
     if box not in state.storage:
       if in_corner(box, walls+tmp+list(state.obstacles)):
-          return 10000
+          return float('inf')
             
       if next_to_wall(box, walls+list(state.obstacles)):
           tmp.append(box)
