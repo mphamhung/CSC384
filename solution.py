@@ -95,6 +95,14 @@ def heur_alternate(state):
         return True
     else:
       return False
+      
+  def next_to_wall(box, obstacles):
+    if box[0]-1  in obstacles or box[0]+1 in obstacles:
+      return True
+    if box[1]-1  in obstacles or box[1] +1 in obstacles:
+      return True
+    else: 
+      return False
     
   def obstruction_in_between(box, storage):
     distance = calc_dist(box, storage)
@@ -105,9 +113,8 @@ def heur_alternate(state):
     return distance
     
 
-  
+  #Initilizing walls
   if not walls:
-    '''adding walls'''
     for i in range(state.width):
         walls.append((i, -1))
         walls.append((i, state.height))
@@ -116,6 +123,12 @@ def heur_alternate(state):
         walls.append((-1, j))
         walls.append((state.width, j))
         
+  for storage in state.storage:
+    if not next_to_wall(storage, walls+list(state.obstacles)):
+      for box in state.boxes:
+        if next_to_wall(box, walls+list(state.obstacles)):
+          return float('inf')
+          
   tmp = []
   for box in state.boxes:
     if box not in state.storage:
