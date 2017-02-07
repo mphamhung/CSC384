@@ -108,14 +108,14 @@ def heur_alternate(state):
         walls.append((state.width, j))
     '''adding state obstacles'''
     
-  tmp = []
-  for box in state.boxes:
-    if box not in state.storage:
-      if in_corner(box, walls+tmp+list(state.obstacles)):
-          return 10000
-            
-      if next_to_wall(box, list(state.obstacles)):
-            tmp.append(box)
+  # tmp = []
+  # for box in state.boxes:
+  #   if box not in state.storage:
+  #     if in_corner(box, walls+tmp+list(state.obstacles)):
+  #         return 10000
+  #           
+  #     if next_to_wall(box, list(state.obstacles)):
+  #           tmp.append(box)
 
         
   # Distance from boxes to their storage
