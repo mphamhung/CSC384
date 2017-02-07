@@ -86,8 +86,8 @@ def heur_alternate(state):
   #   prev_states.append(state.hashable_state())
   #   
   
-  def calc_dist(robot, box, storage):
-    return (abs(box[0]-storage[0])+abs(box[1]-storage[1]))+ (abs(box[0]-robot[0])+abs(box[1]-robot[1]))
+  def calc_dist(box, storage):
+    return (abs(box[0]-storage[0])+abs(box[1]-storage[1]))
 
 
   def in_corner(box, obstacles):
@@ -96,6 +96,15 @@ def heur_alternate(state):
         return True
     else:
       return False
+    
+  def obstruction_in_between(box, storage):
+    distance = calc_dist(box, storage)
+    for obstacle in state.obstacles:
+      if calc_dist(box, obstacle)+calc_dist(storage, obstacle) == distance:
+        distance += 3
+    
+    return distance
+    
 
   
   if not walls:
@@ -123,7 +132,7 @@ def heur_alternate(state):
           return 10000
             
       if next_to_wall(box, walls+list(state.obstacles)):
-            tmp.append(box)
+          tmp.append(box)
 
             
   # Distance from robot to boxes to their storage
@@ -132,12 +141,12 @@ def heur_alternate(state):
     distance = float('inf')
     if (state.restrictions):
       for storage in state.restrictions[restrict]:
-        if calc_dist(state.robot,box, storage) < distance:
-          distance = calc_dist(state.robot,box, storage)
+        if obstruction_in_between(box, storage) < distance:
+          distance = obstruction_in_between(box, storage)
     else:
       for storage in state.storage:
-        if calc_dist(state.robot,box, storage) < distance:
-          distance = calc_dist(state.robot, box, storage)
+        if obstruction_in_between(box, storage) < distance:
+          distance = obstruction_in_between(box, storage)
 
           
     total_distance += distance
