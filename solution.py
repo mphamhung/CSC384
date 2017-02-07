@@ -74,17 +74,19 @@ def heur_alternate(state):
   global walls
   global prev_states
   total_distance = 0  
+  
+  
   if not state.parent:
     walls = []
     prev_states = []
   
-  # if state.hashable_state in prev_states:
-  #   return 100000
-  # else:
-  #   prev_states.append(state.hashable_state())
-  #   
-  def calc_dist(robot, box, storage):
+  if state.hashable_state in prev_states:
+    return 100000
+  else:
+    prev_states.append(state.hashable_state())
     
+  
+  def calc_dist(robot, box, storage):
     return (abs(box[0]-storage[0])+abs(box[1]-storage[1]))+ (abs(box[0]-robot[0])+abs(box[1]-robot[1]))
 
 
@@ -94,6 +96,16 @@ def heur_alternate(state):
         return True
     else:
       return False
+
+  def is_dead(state):
+    for box, restrict in state.boxes.items():
+      if (state.restrictions):
+        for storage in state.restrictions[restrict]:
+          if box != storage:
+            if in_corner(box):
+              return true
+              
+          
   
   if not walls:
     '''adding walls'''
@@ -105,7 +117,10 @@ def heur_alternate(state):
         walls.append((-1, j))
         walls.append((state.width, j))
     '''adding state obstacles'''
-    
+  
+  if is_dead(state):
+    return float('inf')
+  
   # tmp = []
   # for box in state.boxes:
   #   if box not in state.storage:
@@ -115,7 +130,7 @@ def heur_alternate(state):
   #     if next_to_wall(box, walls+list(state.obstacles)):
   #           tmp.append(box)
 
-        
+            
   # Distance from robot to boxes to their storage
   tmp =[]
   for box, restrict in state.boxes.items():
