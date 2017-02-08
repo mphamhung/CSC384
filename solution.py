@@ -57,77 +57,95 @@ def heur_manhattan_distance(state):
   return total_distance
 
 
-def next_to_wall(box, obstacles):
-  if box[0]-1  in obstacles or box[0]+1 in obstacles:
-    return True
-  if box[1]-1  in obstacles or box[1] +1 in obstacles:
-    return True
-  else: 
-    return False
-    
-    
-    
-def neighbours(square, obstacles):
-  nb = []
-  if (square[0]-1,square[1]) not in obstacles:
-    nb.append((square[0]-1,square[1]))
-    
-  if (square[0]+1,square[1]) not in obstacles:
-    nb.append((square[0]+1,square[1]))
-    
-  if (square[0],square[1]+1) not in obstacles:
-    nb.append((square[0],square[1]+1))  
-    
-  if (square[0],square[1]-1) not in obstacles:
-    nb.append((square[0],square[1]-1))
-    
-  return nb
-
-def djisktras(start,walls, obstacles, state):
-  frontier = queue.Queue()
-  frontier.put(start)
-  parents = {}
-  distances = {}
-  parents[start] = 0
-  distances[start] = 0
-  visited = [start]
-  
-  for j in obstacles:
-    distances[j] = float('inf')
-  
-  while not frontier.empty():
-    if len(distances) == state.width*state.height:
-      break
-    else:
-      current = frontier.get()
-      nb = neighbours(current, walls+obstacles)
-      for next_ in nb:
-        new_dist = distances[current] + 1
-        if next_ not in distances or new_dist < distances[next_]:
-          visited.append(next_)
-          distances[next_] = new_dist
-          frontier.put(next_)
-          parents[next_] = current
-          
-  for i in range(state.width):
-    for j in range(state.height):
-      if (i,j) not in parents:
-        distances[(i,j)] = float('inf')
-          
-  return distances    
-    
 def heur_alternate(state):
   total_distance = 0
   global costmat
+  global walls
   
+###____________________________Functions_______________________________###
+  def neighbours(square, obstacles):
+    nb = []
+    if (square[0]-1,square[1]) not in obstacles:
+      nb.append((square[0]-1,square[1]))
+      
+    if (square[0]+1,square[1]) not in obstacles:
+      nb.append((square[0]+1,square[1]))
+      
+    if (square[0],square[1]+1) not in obstacles:
+      nb.append((square[0],square[1]+1))  
+      
+    if (square[0],square[1]-1) not in obstacles:
+      nb.append((square[0],square[1]-1))
+      
+    return nb
+  
+  def djisktras(start, walls, obstacles, state):
+    frontier = queue.Queue()
+    frontier.put(start)
+    parents = {}
+    distances = {}
+    parents[start] = 0
+    distances[start] = 0
+    visited = [start]
+    
+    for j in obstacles:
+      distances[j] = float('inf')
+    
+    while not frontier.empty():
+      if len(distances) == state.width*state.height:
+        break
+      else:
+        current = frontier.get()
+        nb = neighbours(current, walls+obstacles)
+        for next_ in nb:
+          new_dist = distances[current] + 1
+          if next_ not in distances or new_dist < distances[next_]:
+            visited.append(next_)
+            distances[next_] = new_dist
+            frontier.put(next_)
+            parents[next_] = current
+    
+    for i in range(state.width):
+      for j in range(state.height):
+        if (i,j) not in parents:
+          distances[(i,j)] = float('inf')
+            
+    return distances          
+    
+  def in_corner(box, obstacles):
+    if (box[0]-1, box[1]) in obstacles or (box[0]+1, box[1]) in obstacles:
+      if (box[0], box[1]-1) in obstacles or (box[0], box[1]+1) in obstacles:
+        return True
+    else: 
+      return False
+    
+  def next_to_wall(box, obstacles):
+    if (box[0]-1, box[1]) in obstacles or (box[0]+1, box[1]) in obstacles:
+      return True
+    elif (box[0], box[1]-1) in obstacles or (box[0], box[1]+1) in obstacles: 
+      return True
+    else:
+      return False
+    
+  def are_boxes_in_corner(state):
+    global walls
+    ob = list(state.obstacles)+list(state.boxes.keys()) + walls 
+    for box in state.boxes:
+      if box not in state.storage:
+        if (box[0]-1, box[1]) in ob or (box[0]+1,box[1]) in ob:
+          if (box[0], box[1]-1) in ob or (box[0], box[1]+1) in ob:
+            return True
+      
+        
+      
 ##########################################################################  
+#####             Initializing stuff         #############################
+  
   if not state.parent:
     colours = 10
         
     costmat = zeros((colours, state.width, state.height))
     walls = []
-    
-    
 
     for i in range(state.width):
         walls.append((i, -1))
@@ -143,211 +161,15 @@ def heur_alternate(state):
         costmat[state.storage[storages]][key[0]][key[1]] = distances[key]
         
 #######################################################################
+
+  if are_boxes_in_corner(state):
+    return float('inf')
+  
   for box in state.boxes:
     total_distance += costmat[state.boxes[box]][box[0]][box[1]]
-    
+
         
   return total_distance
-
-
-cache = {}
-def heur_alternate4(state):
-  '''a better sokoban heuristic'''
-  '''INPUT: a sokoban state'''
-  '''OUTPUT: a numeric value that serves as an estimate of the distance of the state to the goal.'''        
-  #heur_manhattan_distance has flaws.   
-  #Write a heuristic function that improves upon heur_manhattan_distance to estimate distance between the current state and the goal.
-  #Your function should return a numeric value for the estimate of the distance to the goal.
-  global cache  
-  global walls
-  total_distance = 0  
-  
-  mem = hash(frozenset(state.boxes))  + hash(state.width + state.height) 
-  if mem in cache.keys():
-    cache[mem] += 1
-  else:
-    cache[mem] = 1
-    
-  total_distance -= cache[mem]
-    
-  if not state.parent:
-    walls = []
-  
-  def calc_dist(box, storage):
-    return (abs(box[0]-storage[0])+abs(box[1]-storage[1]))
-
-  # def in_corner(box, obstacles):
-  #   if box[0]-1  in obstacles or box[0]+1 in obstacles:
-  #     if box[1]-1  in obstacles or box[1] +1 in obstacles:
-  #       return True
-  #   else:
-  #     return False
-  #     
-  # def next_to_wall(box, obstacles):
-  #   if box[0]-1  in obstacles or box[0]+1 in obstacles:
-  #     return True
-  #   if box[1]-1  in obstacles or box[1] +1 in obstacles:
-  #     return True
-  #   else: 
-  #     return False
-  #   
-  # def obstruction_in_between(box, storage):
-  #   distance = calc_dist(box, storage)
-  #   for obstacle in state.obstacles:
-  #     if calc_dist(box, obstacle)+calc_dist(storage, obstacle) == distance:
-  #       distance += 4
-  #   
-  #   return distance
-  #   
-
-  #Initilizing walls
-  if not walls:
-    for i in range(state.width):
-        walls.append((i, -1))
-        walls.append((i, state.height))
-        
-    for j in range(state.height):
-        walls.append((-1, j))
-        walls.append((state.width, j))
-        
-        
-  #wall checking      
-  for storage in state.storage:
-    if not next_to_wall(storage, walls):
-      for box in state.boxes:
-        if next_to_wall(box, walls):
-          return float('inf')
-          
-  # #corner checking
-  # tmp = []
-  # for box in state.boxes:
-  #   if box not in state.storage:
-  #     if in_corner(box, walls+tmp+list(state.obstacles)):
-  #         return float('inf')
-  #           
-  #     if next_to_wall(box, walls+list(state.obstacles)):
-  #         tmp.append(box)
-
-            
-  # Distance from robot to boxes to their storage
-  tmp =[]
-  for box, restrict in state.boxes.items():
-    distance = float('inf')
-    if (state.restrictions):
-      for storage in state.restrictions[restrict]:
-        if calc_dist(box, storage) + calc_dist(box, state.robot) < distance:
-          distance = calc_dist(box, storage) + calc_dist(box, state.robot)
-    else:
-      for storage in state.storage:
-        if calc_dist(box, storage) + calc_dist(box, state.robot) < distance:
-          distance = calc_dist(box, storage) + calc_dist(box, state.robot)
-
-          
-    total_distance += distance
-    
-    
-  # #Distance of robot to nearest box
-  # for box in state.boxes:
-  #   distance = float('inf')
-  #   if calc_manhattan_dist(state.robot, box) < distance:
-  #     distance = calc_manhattan_dist(state.robot, box)
-  #     
-  # total_distance += distance
-  #       
-  return total_distance
-
-
-def heur_alternate_1(state):
-#IMPLEMENT
-  '''a better sokoban heuristic'''
-  '''INPUT: a sokoban state'''
-  '''OUTPUT: a numeric value that serves as an estimate of the distance of the state to the goal.'''        
-  #heur_manhattan_distance has flaws.   
-  #Write a heuristic function that improves upon heur_manhattan_distance to estimate distance between the current state and the goal.
-  #Your function should return a numeric value for the estimate of the distance to the goal.  
-  
-  '''Let's take into consideration the walls and obstacles'''
-  
-  total_distance = 0
-  
-  global walls
-  global states
-  
-  def calc_dist(box, storage):
-    return (abs(box[0]-storage[0])+abs(box[1]-storage[1]))
-    
-  if not state.parent:
-    walls = []
-    for i in range(state.width):
-      walls.append((i, -1))
-      walls.append((i, state.height))
-      
-    for j in range(state.height):
-      walls.append((-1, j))
-      walls.append((state.width, j))
-    
-    walls += list(state.obstacles)
-
-  def is_storageable(box):
-    n = {}
-    n['UP'] = (box[0]+1, box[1])
-    n['DOWN']= (box[0]-1, box[1])
-    n['RIGHT'] = (box[0], box[1]+1)
-    n['LEFT'] = (box[0], box[1]-1)
-    
-    storagable = False
-    
-    for storage in state.storage:
-      h = box[0] - storage[0] #Storage is Right if Negative, Left if Positive
-      v = box[1] - storage[1] #Storage is Down if Negative, Up if Positive
-      k = 0
-      
-      if h < 0:
-        if n['LEFT'] in walls:
-          k+=1
-          
-      else:
-        if n['RIGHT'] in walls:
-          k+=1
-  
-      if v < 0:
-        if n['UP'] in walls:
-          k+=1
-      else:
-        if n['DOWN'] in walls:
-          k+=1
-    
-      if k<2:
-        storageble = True
-      
-    if storagable:
-      return 0
-    else:
-      return 10000
-      
-  distance = float('inf')    
-  if (state.restrictions):
-    #has restrictions
-    for box, restrict in state.boxes.items():
-      for storage in state.restrictions[restrict]:
-        dist_temp = calc_dist(box, storage)
-        if dist_temp < distance:
-          distance = dist_temp
-          
-      total_distance += distance + is_storageable(box)
-      
-  else:
-    # problem has no restrictions
-    for box, restrict in state.boxes.items():
-      for storage in state.storage:
-        dist_temp = calc_dist(box, storage)
-        if dist_temp < distance:
-          distance = dist_temp + is_storageable(box)
-          
-      total_distance += distance
-      
-  return total_distance
-  
 
 
 def fval_function(sN, weight):
