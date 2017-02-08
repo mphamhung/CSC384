@@ -11,6 +11,8 @@ import os
 from search import * #for search engines
 from sokoban import SokobanState, Direction, PROBLEMS, sokoban_goal_state #for Sokoban specific classes and problems
 from numpy import *
+import queue
+
 #SOKOBAN HEURISTICS
 def heur_displaced(state):
   '''trivial admissible sokoban heuristic'''
@@ -63,10 +65,93 @@ def next_to_wall(box, obstacles):
   else: 
     return False
     
+    
+    
+def neighbours(square, obstacles):
+  nb = []
+  if (square[0]-1,square[1]) not in obstacles:
+    nb.append((square[0]-1,square[1]))
+    
+  if (square[0]+1,square[1]) not in obstacles:
+    nb.append((square[0]+1,square[1]))
+    
+  if (square[0],square[1]+1) not in obstacles:
+    nb.append((square[0],square[1]+1))  
+    
+  if (square[0],square[1]-1) not in obstacles:
+    nb.append((square[0],square[1]-1))
+    
+  return nb
+
+def djisktras(start,walls, obstacles, state):
+  frontier = queue.Queue()
+  frontier.put(start)
+  parents = {}
+  distances = {}
+  parents[start] = 0
+  distances[start] = 0
+  visited = [start]
+  
+  for j in obstacles:
+    distances[j] = float('inf')
+  
+  while not frontier.empty():
+    if len(distances) == state.width*state.height:
+      break
+    else:
+      current = frontier.get()
+      nb = neighbours(current, walls+obstacles)
+      for next_ in nb:
+        new_dist = distances[current] + 1
+        if next_ not in distances or new_dist < distances[next_]:
+          visited.append(next_)
+          distances[next_] = new_dist
+          frontier.put(next_)
+          parents[next_] = current
+          
+  for i in range(state.width):
+    for j in range(state.height):
+      if (i,j) not in parents:
+        distances[(i,j)] = float('inf')
+          
+  return distances    
+    
+def heur_alternate(state):
+  total_distance = 0
+  global costmat
+  
+##########################################################################  
+  if not state.parent:
+    colours = 10
+        
+    costmat = zeros((colours, state.width, state.height))
+    walls = []
+    
+    
+
+    for i in range(state.width):
+        walls.append((i, -1))
+        walls.append((i, state.height))
+        
+    for j in range(state.height):
+        walls.append((-1, j))
+        walls.append((state.width, j))      
+    
+    for storages in state.storage:
+      distances = djisktras(storages, walls, list(state.obstacles), state)
+      for key in distances:
+        costmat[state.storage[storages]][key[0]][key[1]] = distances[key]
+        
+#######################################################################
+  for box in state.boxes:
+    total_distance += costmat[state.boxes[box]][box[0]][box[1]]
+    
+        
+  return total_distance
 
 
 cache = {}
-def heur_alternate(state):
+def heur_alternate4(state):
   '''a better sokoban heuristic'''
   '''INPUT: a sokoban state'''
   '''OUTPUT: a numeric value that serves as an estimate of the distance of the state to the goal.'''        
