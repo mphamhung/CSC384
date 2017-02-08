@@ -58,11 +58,20 @@ def heur_manhattan_distance(state):
 
 
 def heur_alternate(state):
+#IMPLEMENT
+  '''a better sokoban heuristic'''
+  '''INPUT: a sokoban state'''
+  '''OUTPUT: a numeric value that serves as an estimate of the distance of the state to the goal.'''        
+  #heur_manhattan_distance has flaws.   
+  #Write a heuristic function that improves upon heur_manhattan_distance to estimate distance between the current state and the goal.
+  #Your function should return a numeric value for the estimate of the distance to the goal.  
+  
   total_distance = 0
   global costmat
   global walls
   
 ###____________________________Functions_______________________________###
+   
   def neighbours(square, obstacles):
     nb = []
     if (square[0]-1,square[1]) not in obstacles:
@@ -103,46 +112,25 @@ def heur_alternate(state):
             visited.append(next_)
             distances[next_] = new_dist
             frontier.put(next_)
-            parents[next_] = current
-    
-    for i in range(state.width):
-      for j in range(state.height):
-        if (i,j) not in parents:
-          distances[(i,j)] = float('inf')
             
     return distances          
     
-  def in_corner(box, obstacles):
-    if (box[0]-1, box[1]) in obstacles or (box[0]+1, box[1]) in obstacles:
-      if (box[0], box[1]-1) in obstacles or (box[0], box[1]+1) in obstacles:
-        return True
-    else: 
-      return False
-    
-  def next_to_wall(box, obstacles):
-    if (box[0]-1, box[1]) in obstacles or (box[0]+1, box[1]) in obstacles:
-      return True
-    elif (box[0], box[1]-1) in obstacles or (box[0], box[1]+1) in obstacles: 
-      return True
-    else:
-      return False
-    
   def are_boxes_in_corner(state):
     global walls
-    ob = list(state.obstacles)+list(state.boxes.keys()) + walls 
+    ob = list(state.obstacles)+ walls 
     for box in state.boxes:
       if box not in state.storage:
         if (box[0]-1, box[1]) in ob or (box[0]+1,box[1]) in ob:
           if (box[0], box[1]-1) in ob or (box[0], box[1]+1) in ob:
             return True
-      
-        
+    return False
+  
       
 ##########################################################################  
 #####             Initializing stuff         #############################
   
   if not state.parent:
-    colours = 10
+    colours = 7
         
     costmat = zeros((colours, state.width, state.height))
     walls = []
@@ -153,7 +141,10 @@ def heur_alternate(state):
         
     for j in range(state.height):
         walls.append((-1, j))
-        walls.append((state.width, j))      
+        walls.append((state.width, j))  
+    
+    if are_boxes_in_corner(state):
+      return float('inf')    
     
     for storages in state.storage:
       distances = djisktras(storages, walls, list(state.obstacles), state)
@@ -161,14 +152,12 @@ def heur_alternate(state):
         costmat[state.storage[storages]][key[0]][key[1]] = distances[key]
         
 #######################################################################
-
   if are_boxes_in_corner(state):
-    return float('inf')
-  
+        return float('inf')            
+
   for box in state.boxes:
     total_distance += costmat[state.boxes[box]][box[0]][box[1]]
-
-        
+    
   return total_distance
 
 

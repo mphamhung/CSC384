@@ -1,9 +1,9 @@
-1.
+1. Start from an example heurstic already given and build from there. This helps you benchmark if what you're adding is helping or not.
 
-2.
+2. See if you can do better than the example heurstic (creating a more accurate distance function)
 
-3.
+3. Since this project has you implementing functions whose performance is bound by time, optimal code is key to doing well (i.e. caching frequently used data or fewer lines of code).
 
-4.
+4. From playing Sokoban, you realize that there are certain positions of the boxes that make the puzzle unsolvable. Making the heurstic see these help reduce the branchnig factor of the search.
 
-5.
+5. Test using the CDF computers (or whichever computer/server your code will be marked on). It helps with benchmarking when your computer isn't powerful enough.
