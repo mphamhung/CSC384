@@ -105,10 +105,10 @@ def heur_alternate(state):
         break
       else:
         current = frontier.get()
-        if current in visited:
-          pass
         nb = neighbours(current, walls+obstacles)
         for next_ in nb:
+          if next_ in visited:
+            continue
           new_dist = distances[current] + 1
           if next_ not in distances or new_dist < distances[next_]:
             visited.append(next_)
