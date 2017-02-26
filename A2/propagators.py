@@ -89,37 +89,28 @@ def prop_FC(csp, newVar=None):
         constraints = csp.get_cons_with_var(newVar)
     else:
         constraints = csp.get_all_cons()
-
+        
     for c in constraints:
-        if c.get_n_unasgn() == 0:  #Check if all var is assigned
-            vals = []
-            vars = c.get_scope()
-            for var in vars:
-                vals.append(var.get_assigned_value())
-            if not c.check(vals):
-                return False, tb_pruned #DWO
-                
-        elif c.get_n_unasgn() == 1:
+        if c.get_n_unasgn() == 1:
             vals = []
             vars = c.get_scope()
             var = c.get_unasgn_vars()[0]
+            
             for i in range(len(vars)):
                 if vars[i].is_assigned():
                     vals.append(vars[i].get_assigned_value())
                 else:
                     vals.append(None)
                     unasgn_index = i
-
-            if var.cur_domain():
-                tbb = []
+            
+            if var.cur_domain_size() != 0:
                 for x in var.cur_domain():
                     vals[unasgn_index] = x
                     if not c.check(vals):
                         tb_pruned.append((var,x))
-                        tbb.append(x)
-                
-                if var.cur_domain() == tbb:
-                    return False, tb_pruned #DWO
+                        var.prune_value(x)
+                        if var.cur_domain_size() ==0:
+                            return False, tb_pruned
             else:
                 return False, tb_pruned
     
@@ -131,15 +122,46 @@ def prop_GAC(csp, newVar=None):
        processing all constraints. Otherwise we do GAC enforce with
        constraints containing newVar on GAC Queue'''
 #IMPLEMENT
-    GAC_Queue = queue.Queue()
     tb_pruned = []
+    s = set([])
+    GAC_Queue = queue.Queue()
     
     if newVar:
-        for c in csp.get_cons_with_var(newVar):
-            GAC_Queue.put(c)
+        constraints = csp.get_cons_with_var(newVar)
     else:
-        for c in csp.get_all_cons():
-            GAC_Queue.put(c)
+        constraints = csp.get_all_cons()
+    
+    for i in constraints:
+        GAC_Queue.put(i)
+        s.add(i)
+        
+    while not GAC_Queue.empty():
+        C = GAC_Queue.get()
+        s.remove(C)
+        for var in C.get_scope(): #each member of scope (C)
+            if var.cur_domain_size() == 0:
+                return False, tb_pruned
+            
+            for val in var.cur_domain(): #for d in CurDom(V)
+                if C.has_support(var, val) == False:
+                    tb_pruned.append((var,val))
+                    var.prune_value(val)
+                    if var.cur_domain_size() == 0:
+                        return False , tb_pruned#DWO
+                    else:
+                        for con in csp.get_cons_with_var(var):
+                            if con not in s:
+                                GAC_Queue.put(con)
+                                s.add(con)
+    
+
+    
+    return True, tb_pruned
+        
+                            
+                    
+                        
+    
             
     
 

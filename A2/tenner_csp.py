@@ -66,6 +66,85 @@ def tenner_csp_model_1(initial_tenner_board):
     '''
     
 #IMPLEMENT
+    def get_nb(w,h,row,col):
+        neighbours = []
+        for i in [-1,1]:
+            for j in [-1,0,1]:
+                if 0<=row+i<h:
+                    if 0<=col+j<w:
+                        neighbours.append((row+i,col+j))
+        return neighbours
+        
+        
+    n_grid = initial_tenner_board[0]
+    last_row = initial_tenner_board[1]
+    height = len(n_grid)
+    width = len(last_row)
+        
+    empty_domain = [0,1,2,3,4,5,6,7,8,9]
+    
+    vars = []
+    for i in range(height):
+        row = []
+        for j in range(width):
+            if n_grid[i][j] == -1:
+                row.append(Variable('({},{})'.format(i,j), empty_domain))
+            else:
+                row.append(Variable('({},{})'.format(i,j), [n_grid[i][j]]))
+        vars.append(row)
+    
+    cons = []
+    
+    #Row Constraints:
+    for i in range(height):
+        for j in range(width):
+            for k in range(j+1, width):
+                con = Constraint("Row{}_Pairs({},{})".format(i,j,k), [vars[i][j], vars[i][k]])
+                sat_tuples = []
+                for t in itertools.product(vars[i][j].domain(), vars[i][k].domain()):
+                    if t[0] != t[1]:
+                        sat_tuples.append(t)
+                con.add_satisfying_tuples(sat_tuples)
+                cons.append(con)
+    
+    #Adjacency Cosntraints: only need to check column and diagonals
+    for i in range(height):
+        for j in range(width):
+            nbs = get_nb(width,height,i,j)
+            for n in nbs:
+                con = Constraint("AdjBwn({},{})_({},{})".format(i,j,n[0],n[1]), [vars[i][j], vars[n[0]][n[1]]])
+                sat_tuples = []
+                for t in itertools.product(vars[i][j].domain(), vars[n[0]][n[1]].domain()):
+                    if t[0]!=t[1]:
+                        sat_tuples.append(t)
+                con.add_satisfying_tuples(sat_tuples)
+                cons.append(con)
+
+    #Column N-ary Constraints
+    vars_T = [list(a) for a in zip(*vars)] #transposed
+    for i in range(width):
+        con = Constraint("Col{}_Sum".format(i), vars_T[i])
+        doms = []
+        sat_tuples = []
+        for d in vars_T[i]:
+            doms.append(d.domain())
+        for t in itertools.product(*doms):
+            if sum(t) == last_row[i]:
+                sat_tuples.append(t)
+        con.add_satisfying_tuples(sat_tuples)
+        cons.append(con)
+        
+    flatvars = []
+    for row in vars:
+        for var in row:
+            flatvars.append(var)
+            
+    csp = CSP("{}x10 Tenner Grid Model".format(height, vars), flatvars)
+    
+    for c in cons:
+        csp.add_constraint(c)
+    
+    return csp, vars
 
 ##############################
 
@@ -111,3 +190,89 @@ def tenner_csp_model_2(initial_tenner_board):
     '''
 
 #IMPLEMENT
+    #_____________________________________________________________________________#
+    def get_nb(w,h,row,col):
+        neighbours = []
+        for i in [-1,1]:
+            for j in [-1,0,1]:
+                if 0<=row+i<h:
+                    if 0<=col+j<w:
+                        neighbours.append((row+i,col+j))
+        return neighbours
+        
+    def alldiff(tuple):
+        return len(set(tuple)) == 10
+    #_____________________________________________________________________________#
+    
+    n_grid = initial_tenner_board[0]
+    last_row = initial_tenner_board[1]
+    height = len(n_grid)
+    width = len(last_row)
+        
+    empty_domain = [0,1,2,3,4,5,6,7,8,9]
+    
+    vars = []
+    for i in range(height):
+        row = []
+        for j in range(width):
+            if n_grid[i][j] == -1:
+                row.append(Variable('({},{})'.format(i,j), empty_domain))
+            else:
+                row.append(Variable('({},{})'.format(i,j), [n_grid[i][j]]))
+        vars.append(row)
+    
+    cons = []
+    
+    #Row n-ary all-dif constraint
+    for i in range(height):
+        con = Constraint("Row{}_N-ary AllDiff".format(i), vars[i])
+        doms = []
+        sat_tuples = []
+        for d in vars[i]:
+            doms.append(d.domain())
+        for t in itertools.product(*doms):
+            if alldiff(t):
+                sat_tuples.append(t)
+        con.add_satisfying_tuples(sat_tuples)
+        cons.append(con)
+        
+        
+    #Column n-ary sum constraint
+    vars_T = [list(a) for a in zip(*vars)] #transposed
+    for i in range(width):
+        con = Constraint("Col{}_Sum".format(i), vars_T[i])
+        doms = []
+        sat_tuples = []
+        for d in vars_T[i]:
+            doms.append(d.domain())
+        for t in itertools.product(*doms):
+            if sum(t) == last_row[i]:
+                sat_tuples.append(t)
+        con.add_satisfying_tuples(sat_tuples)
+        cons.append(con)
+        
+    #Adjacency Constraints: only need to check column neighbours and diagonals
+    for i in range(height):
+        for j in range(width):
+            nbs = get_nb(width,height,i,j)
+            for n in nbs:
+                con = Constraint("AdjBwn({},{})_({},{})".format(i,j,n[0],n[1]), [vars[i][j], vars[n[0]][n[1]]])
+                sat_tuples = []
+                for t in itertools.product(vars[i][j].domain(), vars[n[0]][n[1]].domain()):
+                    if t[0]!=t[1]:
+                        sat_tuples.append(t)
+                con.add_satisfying_tuples(sat_tuples)
+                cons.append(con)
+          
+    #Creating csp object
+    flatvars = []
+    for row in vars:
+        for var in row:
+            flatvars.append(var)
+            
+    csp = CSP("{}x10 Tenner Grid Model".format(height, vars), flatvars)
+    
+    for c in cons:
+        csp.add_constraint(c)
+    
+    return csp, vars
