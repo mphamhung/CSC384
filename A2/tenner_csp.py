@@ -201,7 +201,7 @@ def tenner_csp_model_2(initial_tenner_board):
         return neighbours
         
     def alldiff(tuple):
-        return len(set(tuple)) == 10
+        return len(set(tuple)) == len(tuple)
     #_____________________________________________________________________________#
     
     n_grid = initial_tenner_board[0]
@@ -227,9 +227,16 @@ def tenner_csp_model_2(initial_tenner_board):
     for i in range(height):
         con = Constraint("Row{}_N-ary AllDiff".format(i), vars[i])
         doms = []
+        non = []
         sat_tuples = []
+        for k in range(width):
+            if n_grid[i][k] != -1:
+                non += vars[i][k].domain()
         for d in vars[i]:
-            doms.append(d.domain())
+            if d.domain_size()>1:
+                doms.append(list(set(d.domain()).difference(set(non))))
+            else:
+                doms.append(d.domain())
         for t in itertools.product(*doms):
             if alldiff(t):
                 sat_tuples.append(t)
